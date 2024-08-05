@@ -2,3 +2,4 @@ dataset/
 Docs/
 train/
 test/
+.DS_Store
