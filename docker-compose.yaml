@@ -1,26 +1,30 @@
 services:
   redis:
     image: redis:latest
-    container_name: redis
-    ports:
-      - "6379:6379"
+    container_name: NAD_redis
 
   celery:
-    build: .
-    container_name: celery
-    command: ["celery", "-A", "your_celery_app", "worker", "--loglevel=info"]
+    image: NAD/server
+    container_name: NAD_celery
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    command: ["celery", "-A", "tasks.celery", "worker", "--loglevel=info"]
     depends_on:
       - redis
-    cap_add:
-      - NET_ADMIN
     volumes:
-      - /host/path/to/dumps:/container/path/to/dumps
-    network_mode: "host"
+      - ./server/cicflow-dumps:/app/cicflow-dumps
+      - ./server:/app
 
   flask:
-    build: .
-    container_name: flask
+    image: NAD/server
+    container_name: NAD_flask
+    build:
+      context: ./server
+      dockerfile: Dockerfile
     ports:
-      - "5000:5000"
+      - "8000:5000"
     depends_on:
       - redis
+    volumes:
+      - ./server:/app
