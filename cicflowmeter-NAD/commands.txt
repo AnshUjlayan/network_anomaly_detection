@@ -1,7 +1,0 @@
-git clone https://github.com/hieulw/cicflowmeter
-cd cicflowmeter
-curl -sSL https://install.python-poetry.org | python3 -
-poetry install
-poetry shell
-sudo tcpdump -i en0 -w mycapture.pcap
-cicflowmeter -f mycapture.pcap -c flows.csv
