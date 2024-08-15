@@ -1,12 +1,16 @@
 import argparse
 
-from scapy.sendrecv import AsyncSniffer
-
 from cicflowmeter.flow_session import FlowSession
+from scapy.sendrecv import AsyncSniffer
 
 
 def create_sniffer(
-    input_file, input_interface, output_mode, output, fields=None, verbose=False
+    input_file,
+    input_interface,
+    output_mode,
+    output,
+    fields=None,
+    verbose=False,
 ):
     assert (input_file is None) ^ (
         input_interface is None
@@ -35,6 +39,32 @@ def create_sniffer(
             session=FlowSession,
             store=False,
         )
+
+
+def run_sniffer(
+    input_file=None,
+    input_interface=None,
+    output_mode=None,
+    output=None,
+    fields=None,
+    verbose=False,
+):
+    sniffer = create_sniffer(
+        input_file,
+        input_interface,
+        output_mode,
+        output,
+        fields,
+        verbose,
+    )
+    sniffer.start()
+
+    try:
+        sniffer.join()
+    except KeyboardInterrupt:
+        sniffer.stop()
+    finally:
+        sniffer.join()
 
 
 def main():
@@ -86,7 +116,9 @@ def main():
         help="comma separated fields to include in output (default: all)",
     )
 
-    parser.add_argument("-v", "--verbose", action="store_true", help="more verbose")
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="more verbose"
+    )
 
     args = parser.parse_args()
 

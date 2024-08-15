@@ -25,5 +25,11 @@ def task_status(task_id):
     return jsonify({"task_status": task.status, "task_result": task.result})
 
 
+@app.route("/sniffer")
+def sniffer():
+    task = celery.send_task("tasks.start_sniffer")
+    return jsonify({"task_id": task.id})
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
