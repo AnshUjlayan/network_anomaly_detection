@@ -1,10 +1,10 @@
-import React, { PureComponent } from "react";
+import React, { useState, useEffect } from "react";
+import { useDashboardContext } from "../../context/DashboardContext";
 import {
   PieChart,
   Pie,
   Sector,
   ResponsiveContainer,
-  PieProps,
   SectorProps,
 } from "recharts";
 
@@ -13,32 +13,21 @@ type DataEntry = {
   value: number;
 };
 
-type State = {
-  activeIndex: number;
-};
-
-const data: DataEntry[] = [
-  { name: "Group A", value: 400 },
-  { name: "Group B", value: 300 },
-  { name: "Group C", value: 300 },
-  { name: "Group D", value: 200 },
-];
-
-type RenderActiveShapeProps = SectorProps & {
-  cx: number;
-  cy: number;
-  midAngle: number;
-  innerRadius: number;
-  outerRadius: number;
-  startAngle: number;
-  endAngle: number;
-  fill: string;
-  payload: DataEntry;
-  percent: number;
-  value: number;
-};
-
-const renderActiveShape = (props: RenderActiveShapeProps) => {
+const renderActiveShape = (
+  props: SectorProps & {
+    cx: number;
+    cy: number;
+    midAngle: number;
+    innerRadius: number;
+    outerRadius: number;
+    startAngle: number;
+    endAngle: number;
+    fill: string;
+    payload: DataEntry;
+    percent: number;
+    value: number;
+  },
+) => {
   const RADIAN = Math.PI / 180;
   const {
     cx,
@@ -111,35 +100,37 @@ const renderActiveShape = (props: RenderActiveShapeProps) => {
   );
 };
 
-export default class Example extends PureComponent<{}, State> {
-  state: State = {
-    activeIndex: 0,
+const Example: React.FC = () => {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const { trafficConclusion } = useDashboardContext();
+  useEffect(() => {}, [trafficConclusion]);
+
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
   };
 
-  onPieEnter = (_: any, index: number) => {
-    this.setState({
-      activeIndex: index,
-    });
-  };
-
-  render() {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      {trafficConclusion?.length === 0 ? (
+        <p style={{ textAlign: "center" }}>No data to display</p>
+      ) : (
         <PieChart width={400} height={260}>
           <Pie
-            activeIndex={this.state.activeIndex}
+            activeIndex={activeIndex}
             activeShape={renderActiveShape}
-            data={data}
+            data={trafficConclusion}
             cx="50%"
             cy="50%"
             innerRadius={60}
             outerRadius={80}
             fill="#8884d8"
             dataKey="value"
-            onMouseEnter={this.onPieEnter}
+            onMouseEnter={onPieEnter}
           />
         </PieChart>
-      </ResponsiveContainer>
-    );
-  }
-}
+      )}
+    </ResponsiveContainer>
+  );
+};
+
+export default Example;

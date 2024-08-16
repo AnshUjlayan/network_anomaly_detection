@@ -44,7 +44,7 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className={styles.box}>
-            <h1>Distribution of Total Forward Packet Lengths</h1>
+            <h1>Data Transfer Metrics</h1>
             <div className={styles.chartContainer}>
               <BarChart />
             </div>

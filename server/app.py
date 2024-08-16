@@ -5,9 +5,11 @@ from celery import Celery
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+from utils import get_conclusion, get_data
+
 # -----------------------------------------------------------------------------
-# App config, enabling CORS, and creating a Celery instance
-# Examples for the API endpoints are provided as curl commands
+# App config, enabling CORS, and creating a Celery instance.
+# Examples for the API endpoints are provided as curl commands.
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -25,7 +27,7 @@ if not os.path.exists("dump"):
 
 
 # -----------------------------------------------------------------------------
-# API root to check if the server is running
+# API root to check if the server is running.
 # Example: curl http://localhost:8000/
 
 
@@ -35,7 +37,7 @@ def index():
 
 
 # -----------------------------------------------------------------------------
-# Returns the status and result of a Celery task, by task ID
+# Returns the status and result of a Celery task, by task ID.
 # Example: curl http://localhost:8000/task/<task_id>
 
 
@@ -46,8 +48,8 @@ def task_status(task_id):
 
 
 # -----------------------------------------------------------------------------
-# Lists all the network interfaces available on the system
-# Filters out the interfaces that are not relevant for packet capture
+# Lists all the network interfaces available on the system.
+# Filters out the interfaces that are not relevant for packet capture.
 # Example: curl http://localhost:8000/interfaces
 
 
@@ -66,7 +68,7 @@ def get_interfaces():
 
 
 # -----------------------------------------------------------------------------
-# Lists all the dump files available in the "dumps" directory
+# Lists all the dump files available in the "dumps" directory.
 # Example: curl http://localhost:8000/dumps
 
 
@@ -77,7 +79,6 @@ def get_dumps():
         for f in os.listdir("dump")
         if os.path.isfile(os.path.join("dump", f))
     ]
-    dumps *= 10
     return jsonify(dumps), 200
 
 
@@ -88,9 +89,9 @@ def get_dumps():
 # Example:
 # curl -X POST -H "Content-Type: application/json" -d '{
 #   "interface": "en0",
-#   "duration": 10,
+#   "duration": 100,
 #   "output_file": "data",
-#   "overwrite": false
+#   "overwrite": true
 # }' http://localhost:8000/tcpdump
 
 
@@ -111,6 +112,48 @@ def tcpdump():
     )
 
     return jsonify({"task_id": task.id}), 202
+
+
+# -----------------------------------------------------------------------------
+# Returns the chart data for packet rates, latency, and throughput.
+# Example:
+# curl -X POST -H "Content-Type: application/json" -d '{
+#   "file": "data.csv"
+# }' http://localhost:8000/analysis
+
+
+@app.route("/analysis", methods=["POST"])
+def analysis():
+    file = request.json.get("file", "data.csv")
+    file_path = os.path.join("dump", file)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
+
+    result = get_data(file_path)
+    return jsonify(result), 200
+
+
+# -----------------------------------------------------------------------------
+# Analyzes a dump file and returns the conclusion of the analysis.
+# curl -X POST -H "Content-Type: application/json" -d '{
+#   "file": "data.csv"
+# }' http://localhost:8000/analysis/conclusion
+
+
+@app.route("/analysis/conclusion", methods=["POST"])
+def analysis_conclusion():
+    file = request.json.get("file", "data.csv")
+    file_path = os.path.join("dump", file)
+    if not os.path.exists(file_path):
+        return jsonify({"error": "File not found"}), 404
+
+    result = get_conclusion(file_path)
+    result = [
+        {"name": key, "value": int(value)}
+        for key, value in result.items()
+        if value > 0
+    ]
+    return jsonify(result), 200
 
 
 # -----------------------------------------------------------------------------
