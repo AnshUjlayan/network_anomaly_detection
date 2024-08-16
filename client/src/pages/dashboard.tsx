@@ -5,8 +5,12 @@ import PieChart from "../components/Charts/PieChart";
 import LineChart from "../components/Charts/LineChart";
 import BarChart from "../components/Charts/BarChart";
 import AreaChart from "../components/Charts/AreaChart";
+import FileUploader from "../components/FileUploader/FileUploader";
+import CsvGenerator from "../components/CsvGenerator/CsvGenerator";
+import TabLayout from "../components/TabLayout/TabLayout";
 import { DashboardProvider } from "../context/DashboardContext";
 import styles from "./dashboard.module.css";
+
 
 const Dashboard: React.FC = () => {
   return (
@@ -23,13 +27,16 @@ const Dashboard: React.FC = () => {
               the real-time data through intuitive charts and gain insights into
               your network’s security status.
             </p>
+
           </div>
           <div className={styles.box}>
             <h1>Select File For Analysis</h1>
             <FileList />
           </div>
           <div className={styles.box}>
-            <h1>Add New File</h1>
+
+          <TabLayout TabLayout={[ { label: "Generate", content: <CsvGenerator /> }, { label: "Upload", content:  <FileUploader />  }]} />
+
           </div>
           <div className={styles.box}>
             <h1>Packet Rates</h1>

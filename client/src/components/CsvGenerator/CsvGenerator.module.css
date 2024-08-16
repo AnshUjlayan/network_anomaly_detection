@@ -1,0 +1,60 @@
+.csvGenerator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    background-color: var(--box);
+    border-radius: 10px;
+    overflow: auto;
+  }
+  
+  .dropbox {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .dropbox label {
+    margin-bottom: 5px;
+    color: var(--text);
+  }
+  
+  .dropbox select {
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--text);
+  }
+  
+  .generateButton , .goBackButton{
+    padding: 10px 20px;
+    background-color: var(--ifm-color-primary);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .generateButton:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+  }
+  
+  .generateButton:not(:disabled):hover {
+    background-color: var(--ifm-color-primary-dark);
+  }
+
+  .clock{
+    display: flex;
+    font-size: 45px;
+    justify-self: center;
+    margin:10px auto;
+  }
+
+.timerComplete{
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+}
