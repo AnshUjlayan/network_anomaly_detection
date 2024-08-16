@@ -154,7 +154,13 @@ def analysis_conclusion():
         if value > 0
     ]
     return jsonify(result), 200
+# -----------------------------------------------------------------------------
 
+@app.route("/upload", methods=["POST"])
+def upload_file():
+    file = request.files['file']
+    file.save(os.path.join("dump", file.filename))
+    return jsonify({"message": "File uploaded successfully"}), 200
 
 # -----------------------------------------------------------------------------
 
