@@ -5,8 +5,56 @@ interface DashboardContextProps {
   setFileList: React.Dispatch<React.SetStateAction<string[]>>;
   uploadedFile: File | null;
   setUploadedFile: React.Dispatch<React.SetStateAction<File | null>>;
-  csvData: string[][];
-  setCsvData: React.Dispatch<React.SetStateAction<string[][]>>;
+
+  // Graph data
+  trafficConclusion: { name: string; value: number }[];
+  setTrafficConclusion: React.Dispatch<
+    React.SetStateAction<{ name: string; value: number }[]>
+  >;
+  packetRates: {
+    Timestamp: string;
+    "Forward Packets": number;
+    "Backward Packets": number;
+  }[];
+  setPacketRates: React.Dispatch<
+    React.SetStateAction<
+      {
+        Timestamp: string;
+        "Forward Packets": number;
+        "Backward Packets": number;
+      }[]
+    >
+  >;
+  latency: {
+    Timestamp: string;
+    "Mean IAT Forward": number;
+    "Max IAT Forward": number;
+    "Min IAT Forward": number;
+  }[];
+  setLatency: React.Dispatch<
+    React.SetStateAction<
+      {
+        Timestamp: string;
+        "Mean IAT Forward": number;
+        "Max IAT Forward": number;
+        "Min IAT Forward": number;
+      }[]
+    >
+  >;
+  dataTransfer: {
+    Timestamp: string;
+    "Subflow Forward Bytes": number;
+    "Total Length Forward Packets": number;
+  }[];
+  setDataTransfer: React.Dispatch<
+    React.SetStateAction<
+      {
+        Timestamp: string;
+        "Subflow Forward Bytes": number;
+        "Total Length Forward Packets": number;
+      }[]
+    >
+  >;
 }
 
 const DashboardContext = createContext<DashboardContextProps | undefined>(
@@ -18,7 +66,31 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [fileList, setFileList] = useState<string[]>([]);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [csvData, setCsvData] = useState<string[][]>([]);
+  const [trafficConclusion, setTrafficConclusion] = useState<
+    { name: string; value: number }[]
+  >([]);
+  const [packetRates, setPacketRates] = useState<
+    {
+      Timestamp: string;
+      "Forward Packets": number;
+      "Backward Packets": number;
+    }[]
+  >([]);
+  const [latency, setLatency] = useState<
+    {
+      Timestamp: string;
+      "Mean IAT Forward": number;
+      "Max IAT Forward": number;
+      "Min IAT Forward": number;
+    }[]
+  >([]);
+  const [dataTransfer, setDataTransfer] = useState<
+    {
+      Timestamp: string;
+      "Subflow Forward Bytes": number;
+      "Total Length Forward Packets": number;
+    }[]
+  >([]);
 
   return (
     <DashboardContext.Provider
@@ -27,8 +99,14 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
         setFileList,
         uploadedFile,
         setUploadedFile,
-        csvData,
-        setCsvData,
+        trafficConclusion,
+        setTrafficConclusion,
+        packetRates,
+        setPacketRates,
+        latency,
+        setLatency,
+        dataTransfer,
+        setDataTransfer,
       }}
     >
       {children}
