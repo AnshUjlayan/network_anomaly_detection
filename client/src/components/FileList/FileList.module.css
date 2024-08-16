@@ -1,0 +1,29 @@
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
+  margin: 0;
+  list-style-type: none;
+  color: var(--text);
+  overflow-y: auto;
+  height: 260px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.listContainer li {
+  width: 100%;
+  cursor: pointer;
+  padding: 5px 10px;
+  background-color: var(--border);
+  border-radius: 4px;
+  transition: background-color 0.3s ease;
+  display: inline-block;
+}
+
+.listContainer li:hover {
+  background-color: var(--ifm-color-primary-light);
+  color: var(--background);
+}

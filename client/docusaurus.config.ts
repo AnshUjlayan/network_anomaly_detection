@@ -70,7 +70,7 @@ const config: Config = {
           position: "left",
           label: "Tutorial",
         },
-        { to: "/dashboard", label: "dashboard", position: "left" },
+        { to: "/dashboard", label: "Dashboard", position: "left" },
         {
           href: "https://github.com/facebook/docusaurus",
           label: "GitHub",

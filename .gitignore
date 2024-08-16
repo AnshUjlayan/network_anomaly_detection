@@ -2,9 +2,6 @@
 node_modules
 package-lock.json
 
-# Production
-/build
-
 # Generated files
 .docusaurus
 .cache-loader
@@ -20,6 +17,9 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
+# Redis dump file
+dump.rdb
+
 # Documentation
 docs/
 dataset/
@@ -31,3 +31,4 @@ test/
 .ipynb_checkpoints/
 __pycache__/
 venv/
+dump/
