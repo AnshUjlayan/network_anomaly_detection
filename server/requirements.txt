@@ -16,9 +16,11 @@ Jinja2==3.1.4
 kombu==5.4.0
 MarkupSafe==2.1.5
 numpy==1.26.2
+pandas==2.2.2
 prompt_toolkit==3.0.47
 psutil==6.0.0
 python-dateutil==2.9.0.post0
+pytz==2024.1
 redis==5.0.8
 requests==2.31.0
 scapy==2.5.0
@@ -29,3 +31,4 @@ urllib3==2.2.2
 vine==5.1.0
 wcwidth==0.2.13
 Werkzeug==3.0.3
+xgboost==2.1.1

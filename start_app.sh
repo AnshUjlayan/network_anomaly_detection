@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # To run the script, execute the following commands:
 # chmod +x start_app.sh && ./start_app.sh
 
@@ -8,6 +7,9 @@
 command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
+
+# Trap EXIT signal to kill all background processes
+trap 'kill $(jobs -p)' EXIT
 
 # Check and install Homebrew (for macOS)
 if [[ "$OSTYPE" == "darwin"* ]]; then
@@ -37,25 +39,53 @@ if ! command_exists redis-server; then
     fi
 fi
 
-# Check and install Celery
-if ! command_exists celery; then
-    echo "Celery not found. Installing Celery..."
-    pip install celery
-fi
-
 # Start Redis server in the background
 redis-server &
 
 # Start the client
 cd client
-npm i && npm start &
+
+# check if node_modules are up to date with package.json
+if ! cmp --silent package.json <(cat package.json); then
+    echo "Installing dependencies..."
+    npm i
+else
+    echo "Dependencies are up to date."
+fi
+
+echo "Starting client..."
+npm start &
 
 # Start the server
 cd ../server
-python3 -m venv venv
+
+if [ -d "venv" ]; then
+    echo "Virtual environment exists."
+else
+    echo "Creating virtual environment..."
+    python3 -m venv venv
+fi
+
+# Activate virtual environment
 source venv/bin/activate
-pip install -r requirements.txt
+
+# Compare pip freeze to requirements.txt
+if ! cmp --silent requirements.txt <(pip freeze); then
+    #clear all installed packages
+    pip freeze | xargs pip uninstall -y
+    echo "Installing dependencies..."
+    pip install -r requirements.txt
+else
+    echo "Dependencies are up to date."
+fi
+
 python app.py &
+
+# Check and install Celery
+if ! command_exists celery; then
+    echo "Celery not found. Installing Celery..."
+    pip install celery
+fi
 
 # Start Celery worker
 celery -A tasks.celery worker --loglevel=info &
