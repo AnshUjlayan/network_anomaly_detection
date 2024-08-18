@@ -6,9 +6,22 @@ const api = axios.create({
   baseURL: "http://localhost:8000",
 });
 
-
-export const getFileList = async () => {
-  const response = await api.get("/dumps");
+export const getFileList = async (
+  page: number,
+  limit: number,
+  query: string,
+  sort: string = "timestamp",
+  order: string = "asc",
+) => {
+  const response = await api.get("/filelist", {
+    params: {
+      page,
+      limit,
+      query,
+      sort,
+      order,
+    },
+  });
   return response.data;
 };
 
@@ -32,11 +45,11 @@ export const getInterfaceList = async () => {
 
     if (Array.isArray(response.data)) {
       return response.data;
-    } else if (typeof response.data === 'object') {
+    } else if (typeof response.data === "object") {
       const arrayData = Object.values(response.data).find(Array.isArray);
       if (arrayData) return arrayData;
     }
-    
+
     console.warn("Unexpected data structure from API, returning empty array");
     return [];
   } catch (error) {
@@ -54,12 +67,11 @@ export const uploadFile = async (file: File) => {
     },
   });
   return response.data;
-}
-
+};
 
 export const generateCsv = async (device: string, duration: number) => {
   try {
-    const response = await api.post('/tcpdump', {
+    const response = await api.post("/tcpdump", {
       device,
       duration,
       output_file: `tcpdump_${Date.now()}`,
@@ -68,7 +80,8 @@ export const generateCsv = async (device: string, duration: number) => {
 
     return response.data.task_id;
   } catch (error) {
-    console.error('Error generating CSV:', error);
+    console.error("Error generating CSV:", error);
     throw error;
   }
 };
+
