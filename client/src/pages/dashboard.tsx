@@ -11,32 +11,22 @@ import TabLayout from "../components/TabLayout/TabLayout";
 import { DashboardProvider } from "../context/DashboardContext";
 import styles from "./dashboard.module.css";
 
-
 const Dashboard: React.FC = () => {
   return (
     <Layout title="Test Network">
       <DashboardProvider>
         <div className={styles.container}>
           <div className={styles.box}>
-            <h1>Welcome</h1>
-            <p>
-              This dashboard provides an interactive interface to analyze and
-              visualize your network traffic. Upload your CSV file or create one
-              using tcpdump, and our advanced model will classify the traffic
-              into categories like benign, DOS, SQL injection, and more. Explore
-              the real-time data through intuitive charts and gain insights into
-              your network’s security status.
-            </p>
-
+            <TabLayout
+              TabLayout={[
+                { label: "Generate", content: <CsvGenerator /> },
+                { label: "Upload", content: <FileUploader /> },
+              ]}
+            />
           </div>
           <div className={styles.box}>
             <h1>Select File For Analysis</h1>
             <FileList />
-          </div>
-          <div className={styles.box}>
-
-          <TabLayout TabLayout={[ { label: "Generate", content: <CsvGenerator /> }, { label: "Upload", content:  <FileUploader />  }]} />
-
           </div>
           <div className={styles.box}>
             <h1>Packet Rates</h1>

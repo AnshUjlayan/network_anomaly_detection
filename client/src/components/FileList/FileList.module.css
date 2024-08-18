@@ -1,29 +1,168 @@
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  border: 1px solid var(--border);
+  border-radius: 4px 4px 0 0;
+  padding: 0 5px;
+}
+
+.headerItem {
+  display: flex;
+  flex: 1;
+  text-align: left;
+  border-right: 1px solid var(--border);
+  padding: 0 5px;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.headerItem:last-child {
+  border-right: none;
+}
+
 .listContainer {
   display: flex;
   flex-direction: column;
-  gap: 5px;
   padding: 0;
   margin: 0;
   list-style-type: none;
   color: var(--text);
   overflow-y: auto;
-  height: 260px;
+  height: 170px;
   border: 1px solid var(--border);
-  border-radius: 4px;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
   padding: 5px;
 }
 
-.listContainer li {
+.listItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
   width: 100%;
-  cursor: pointer;
-  padding: 5px 10px;
-  background-color: var(--border);
   border-radius: 4px;
   transition: background-color 0.3s ease;
-  display: inline-block;
+  font-size: 0.8rem;
+  cursor: pointer;
 }
 
-.listContainer li:hover {
+.listItem:nth-child(odd) {
+  background-color: var(--border);
+}
+
+.listItem:nth-child(even) {
+  background-color: var(--ifm-color-gray-light);
+}
+
+.listItem:hover {
   background-color: var(--ifm-color-primary-light);
   color: var(--background);
+  font-weight: bold;
+}
+
+.fileItem {
+  flex: 1;
+  text-align: left;
+  padding: 5px;
+  background-color: transparent;
+}
+
+.searchBar {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+.searchBar > input {
+  width: 100%;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+.searchBar > input:focus {
+  outline: none;
+}
+
+.searchBar > button {
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.searchBar > button:hover {
+  background-color: var(--ifm-color-primary-dark);
+  color: var(--background);
+}
+
+.pageNumber {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 5px;
+}
+
+.pageNumberText {
+  cursor: default;
+  font-size: 0.8rem;
+  color: var(--text);
+  margin-left: 5px;
+}
+
+.pageButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 5px;
+  justify-content: center;
+  align-items: center;
+  height: fit-content;
+}
+
+.pageButtons > button {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 25px;
+  cursor: pointer;
+  border: none;
+  background-color: transparent;
+  border-radius: 4px;
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  background-color: var(--border);
+}
+
+.pageButtons > button:hover {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--background);
+}
+
+.pageButtons > button.active {
+  background-color: var(--ifm-color-primary-light);
+  color: var(--background);
+}
+
+.pageButtons > button.active:hover {
+  background-color: var(--ifm-color-primary-lightest);
+  color: var(--background);
+}
+
+.pageButtons > button:disabled {
+  cursor: default;
+  color: var(--text);
+  background-color: var(--hover);
+}
+
+.pageButtons > button:disabled:hover {
+  background-color: var(--hover);
+  color: var(--text);
 }

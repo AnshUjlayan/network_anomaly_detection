@@ -1,4 +1,5 @@
 import os
+import time
 
 import psutil
 from celery import Celery
@@ -69,17 +70,57 @@ def get_interfaces():
 
 # -----------------------------------------------------------------------------
 # Lists all the dump files available in the "dumps" directory.
-# Example: curl http://localhost:8000/dumps
+# Example: curl http://localhost:8000/filelist
 
 
-@app.route("/dumps", methods=["GET"])
-def get_dumps():
+@app.route("/filelist", methods=["GET"])
+def get_files():
+    query = request.args.get("query", "").lower()
+    page = int(request.args.get("page", 1))
+    limit = int(request.args.get("limit", 10))
+    sort_by = request.args.get("sort_by", "timestamp")
+    order = request.args.get("order", "desc")
+
+    def get_size(file):
+        size = os.path.getsize(file)
+        if size < 1024:
+            return f"{size} B"
+        elif size < 1024 * 1024:
+            return f"{size / 1024:.2f} KB"
+        else:
+            return f"{size / (1024 * 1024):.2f} MB"
+
     dumps = [
-        f
+        {
+            "name": f,
+            "timestamp": time.ctime(os.path.getmtime(os.path.join("dump", f))),
+            "size": get_size(os.path.join("dump", f)),
+        }
         for f in os.listdir("dump")
         if os.path.isfile(os.path.join("dump", f))
     ]
-    return jsonify(dumps), 200
+
+    if query:
+        dumps = [d for d in dumps if query in d["name"].lower()]
+
+    dumps = sorted(dumps, key=lambda x: x[sort_by], reverse=order == "desc")
+
+    total = (len(dumps) + (limit - 1)) // limit
+    start = (page - 1) * limit
+    end = start + limit
+    paginated_files = dumps[start:end]
+
+    return (
+        jsonify(
+            {
+                "total": total,
+                "page": page,
+                "limit": limit,
+                "files": paginated_files,
+            }
+        ),
+        200,
+    )
 
 
 # -----------------------------------------------------------------------------
@@ -154,13 +195,17 @@ def analysis_conclusion():
         if value > 0
     ]
     return jsonify(result), 200
+
+
 # -----------------------------------------------------------------------------
+
 
 @app.route("/upload", methods=["POST"])
 def upload_file():
-    file = request.files['file']
+    file = request.files["file"]
     file.save(os.path.join("dump", file.filename))
     return jsonify({"message": "File uploaded successfully"}), 200
+
 
 # -----------------------------------------------------------------------------
 

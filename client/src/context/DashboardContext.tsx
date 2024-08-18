@@ -1,10 +1,26 @@
 import React, { createContext, useContext, useState } from "react";
 
 interface DashboardContextProps {
-  fileList: string[];
-  setFileList: React.Dispatch<React.SetStateAction<string[]>>;
-  uploadedFile: File | null;
-  setUploadedFile: React.Dispatch<React.SetStateAction<File | null>>;
+  fileList: {
+    page: number;
+    limit: number;
+    query: string;
+    sort: string;
+    order: string;
+    total: number;
+    files: { name: string; timestamp: string; size: string }[];
+  };
+  setFileList: React.Dispatch<
+    React.SetStateAction<{
+      page: number;
+      limit: number;
+      query: string;
+      sort: string;
+      order: string;
+      total: number;
+      files: { name: string; timestamp: string; size: string }[];
+    }>
+  >;
 
   // Graph data
   trafficConclusion: { name: string; value: number }[];
@@ -64,8 +80,23 @@ const DashboardContext = createContext<DashboardContextProps | undefined>(
 export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [fileList, setFileList] = useState<string[]>([]);
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileList, setFileList] = useState<{
+    page: number;
+    limit: number;
+    query: string;
+    sort: string;
+    order: string;
+    total: number;
+    files: { name: string; timestamp: string; size: string }[];
+  }>({
+    page: 1,
+    limit: 5,
+    query: "",
+    sort: "timestamp",
+    order: "desc",
+    total: 0,
+    files: [],
+  });
   const [trafficConclusion, setTrafficConclusion] = useState<
     { name: string; value: number }[]
   >([]);
@@ -97,8 +128,6 @@ export const DashboardProvider: React.FC<{ children: React.ReactNode }> = ({
       value={{
         fileList,
         setFileList,
-        uploadedFile,
-        setUploadedFile,
         trafficConclusion,
         setTrafficConclusion,
         packetRates,
