@@ -58,15 +58,24 @@ export const getInterfaceList = async () => {
   }
 };
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File, rename : string , overwrite : boolean) => {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await api.post("/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data;
+  formData.append("file", file);
+  formData.append("rename", rename);
+  formData.append("overwrite", overwrite.toString());
+  try {
+    const response = await api.post("/upload", 
+      formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  }catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
 };
 
 export const generateCsv = async (device: string, duration: number) => {
