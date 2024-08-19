@@ -62,17 +62,25 @@ def get_conclusion(file):
     result = {
         "Benign": np.sum(predictions == 0),
         "Bot": np.sum(predictions == 1),
-        "DDoS": np.sum(predictions == 2),
-        "DoS GoldenEye": np.sum(predictions == 3),
-        "DoS Hulk": np.sum(predictions == 4),
-        "DoS Slowhttptest": np.sum(predictions == 5),
-        "DoS slowloris": np.sum(predictions == 6),
+        "Brute Force": np.sum(predictions == 2),
+        "DoS": np.sum(predictions == 3),
+        "Infiltration": np.sum(predictions == 4),
+        "SQL Injection": np.sum(predictions == 5),
     }
     return result
 
 
+def compress_data(data):
+    if len(data) > 100:
+        indices = np.linspace(0, len(data) - 1, 100).astype(int)
+        data = data.iloc[indices].reset_index(drop=True)
+    return data
+
+
 def get_data(file):
     data = load_data(file)
+    data = compress_data(data)
+
     result = {}
 
     column_mappings = {

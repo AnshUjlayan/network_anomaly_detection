@@ -1,5 +1,5 @@
 import os
-import time
+from datetime import datetime
 
 import psutil
 from celery import Celery
@@ -78,11 +78,13 @@ def get_files():
     query = request.args.get("query", "").lower()
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 10))
-    sort_by = request.args.get("sort_by", "timestamp")
+    sort_by = request.args.get("sort", "timestamp")
     order = request.args.get("order", "desc")
 
     def get_size(file):
-        size = os.path.getsize(file)
+        return os.path.getsize(file)
+
+    def get_human_readable_size(size):
         if size < 1024:
             return f"{size} B"
         elif size < 1024 * 1024:
@@ -93,11 +95,13 @@ def get_files():
     dumps = [
         {
             "name": f,
-            "timestamp": time.ctime(os.path.getmtime(os.path.join("dump", f))),
+            "timestamp": datetime.fromtimestamp(
+                os.path.getmtime(os.path.join("dump", f))
+            ),
             "size": get_size(os.path.join("dump", f)),
         }
         for f in os.listdir("dump")
-        if os.path.isfile(os.path.join("dump", f))
+        if os.path.isfile(os.path.join("dump", f)) and f.endswith(".csv")
     ]
 
     if query:
@@ -109,6 +113,10 @@ def get_files():
     start = (page - 1) * limit
     end = start + limit
     paginated_files = dumps[start:end]
+
+    for file in paginated_files:
+        file["timestamp"] = file["timestamp"].strftime("%a %b %d %H:%M:%S %Y")
+        file["size"] = get_human_readable_size(file["size"])
 
     return (
         jsonify(
