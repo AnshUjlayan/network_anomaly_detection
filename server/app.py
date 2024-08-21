@@ -1,16 +1,62 @@
 import os
-from datetime import datetime
-
+import csv
 import psutil
+
+from datetime import datetime
 from celery import Celery
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 
+
 from utils import get_conclusion, get_data
+
+# -----------------------------------------------------------------------------
+
+REQUIRED_FIELDS = [
+    "dst_port",
+    "timestamp",
+    "fwd_pkts_s",
+    "bwd_pkts_s",
+    "totlen_fwd_pkts",
+    "fwd_header_len",
+    "flow_iat_mean",
+    "flow_iat_max",
+    "fwd_iat_tot",
+    "fwd_iat_max",
+    "fwd_iat_min",
+    "fwd_iat_mean",
+    "init_fwd_win_byts",
+    "init_bwd_win_byts",
+    "subflow_fwd_byts"
+]
+
+
+def check_csv(file_path):
+    print("checking csv......")   
+    with open(file_path, newline='') as csvfile:
+        reader = csv.DictReader(csvfile)
+        if reader.fieldnames is None:
+            return ["error", "CSV is not valid. Could not read headers."]
+        if not all(field in reader.fieldnames for field in REQUIRED_FIELDS):
+            return ["error", "CSV is not valid. Required fields missing."]
+        return ["success", "CSV is valid."]
+
+
+def ifnot_make_dirs():
+    dump_dir = "dump"
+    if not os.path.exists(dump_dir):
+        os.makedirs(dump_dir)
+
+    temp_dir = os.path.join(dump_dir, "temp")
+    if not os.path.exists(temp_dir):
+        os.makedirs(temp_dir)
+
+    return dump_dir, temp_dir
 
 # -----------------------------------------------------------------------------
 # App config, enabling CORS, and creating a Celery instance.
 # Examples for the API endpoints are provided as curl commands.
+
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
@@ -75,6 +121,7 @@ def get_interfaces():
 
 @app.route("/filelist", methods=["GET"])
 def get_files():
+    ifnot_make_dirs()
     query = request.args.get("query", "").lower()
     page = int(request.args.get("page", 1))
     limit = int(request.args.get("limit", 10))
@@ -146,9 +193,22 @@ def get_files():
 
 @app.route("/tcpdump", methods=["POST"])
 def tcpdump():
+    ifnot_make_dirs()
     interface = request.json.get("interface", "en0")
     duration = request.json.get("duration", 10)
     output_file = request.json.get("output_file", "data")
+
+    if os.path.exists(os.path.join("dump", output_file + ".csv")):
+        i = 1
+        parts = output_file.split("-")
+        prefix = "-".join(parts[:-2])
+        suffix = "-".join(parts[-2:])
+        print(prefix)
+
+        while os.path.exists(os.path.join("dump",  f'{prefix}({i})-{suffix}.csv')):
+            i += 1
+        output_file = f'{prefix}({i})-{suffix}'
+
     overwrite = request.json.get("overwrite", False)
 
     output_file = os.path.join("dump", output_file + ".csv")
@@ -161,6 +221,55 @@ def tcpdump():
     )
 
     return jsonify({"task_id": task.id}), 202
+
+
+# -----------------------------------------------------------------------------
+
+
+@app.route("/upload", methods=["POST"])
+def upload_file():
+
+    ifnot_make_dirs()
+
+    dump_dir = "dump"
+    file = request.files["file"]
+    overwrite = request.form.get("overwrite", 'false').lower() == 'true'  
+    file_name = request.form.get("rename", file.filename)
+    output_file = os.path.join("dump", file_name.rsplit('.', 1)[0] + ".csv")
+    file_path = os.path.join(dump_dir, file_name)
+
+    if  file_name.endswith(".pcap") or file_name.endswith(".csv"):
+        pass
+    else:
+        return jsonify({"error": "Invalid file format. Please upload either a CSV file or PCAP file."}), 400
+    
+    if os.path.exists(output_file) and (overwrite == False):
+        return jsonify({"error": "Output file already exists. Please rename the file or set the overwrite flag to true."}), 400
+
+    if overwrite == True and os.path.exists(output_file):
+        os.remove(output_file)
+
+    if file_name.endswith(".pcap"):
+
+        file.save(os.path.join("dump/temp", file_name))
+        input_file = os.path.join("dump/temp", file_name)
+
+        task = celery.send_task(
+            "tasks.convert_pcap_to_csv", args=[input_file, output_file]
+        )
+
+    else:
+        try:
+            file.save(file_path)
+        except PermissionError:
+            return jsonify({"error": "Permission denied while saving the file."}), 500
+
+    result = check_csv(output_file)
+    if result[0] == "error":
+        os.remove(output_file)
+        return jsonify({"error": result[1]}), 400
+
+    return jsonify({"message": "File uploaded successfully"}), 200
 
 
 # -----------------------------------------------------------------------------
@@ -207,15 +316,6 @@ def analysis_conclusion():
 
 # -----------------------------------------------------------------------------
 
-
-@app.route("/upload", methods=["POST"])
-def upload_file():
-    file = request.files["file"]
-    file.save(os.path.join("dump", file.filename))
-    return jsonify({"message": "File uploaded successfully"}), 200
-
-
-# -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000, debug=True)

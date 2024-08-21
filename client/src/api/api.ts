@@ -58,30 +58,52 @@ export const getInterfaceList = async () => {
   }
 };
 
-export const uploadFile = async (file: File) => {
+export const uploadFile = async (file: File, rename : string , overwrite : boolean) => {
   const formData = new FormData();
   formData.append("file", file);
-  const response = await api.post("/upload", formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
-  return response.data;
+  formData.append("file", file);
+  formData.append("rename", rename);
+  formData.append("overwrite", overwrite.toString());
+  try {
+    const response = await api.post("/upload", 
+      formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  }catch (error) {
+    console.error("Error uploading file:", error);
+    throw error;
+  }
 };
 
-export const generateCsv = async (device: string, duration: number) => {
+export const generateCsv = async (prefix: string ,device: string, duration: number) => {
   try {
+    const fileName = `${prefix}-${device}-${duration}`;
     const response = await api.post("/tcpdump", {
       device,
       duration,
-      output_file: `tcpdump_${Date.now()}`,
+      output_file: fileName,
       overwrite: false,
     });
 
     return response.data.task_id;
   } catch (error) {
-    console.error("Error generating CSV:", error);
+    console.error("Error generating CSV:", error.response?.data || error.message);
     throw error;
   }
 };
 
+export const getTaskStatus = async (taskId: string) => {
+  try {
+    const response = await api.get(`/task/${taskId}`);
+    if(response.data.status === "SUCCESS"){ 
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error fetching task status:", error);
+    throw error;
+  }
+}

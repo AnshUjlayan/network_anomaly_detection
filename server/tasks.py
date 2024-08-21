@@ -65,4 +65,48 @@ def create_tcpdump(interface, duration, output_file):
         os.remove(temp_file)
 
 
+@celery.task
+def convert_pcap_to_csv(input_file, output_file):
+    try:
+        fields = (",").join(
+            [
+                "dst_port",
+                "totlen_fwd_pkts",
+                "flow_iat_mean",
+                "flow_iat_max",
+                "fwd_iat_tot",
+                "fwd_iat_mean",
+                "fwd_iat_max",
+                "fwd_iat_min",
+                "fwd_header_len",
+                "fwd_pkts_s",
+                "bwd_pkts_s",
+                "subflow_fwd_byts",
+                "init_fwd_win_byts",
+                "init_bwd_win_byts",
+                "timestamp",
+            ]
+        )
+
+        run_sniffer(
+            input_file=input_file,
+            input_interface=None,
+            output_mode="csv",
+            output=output_file,
+            fields=fields,
+            verbose=False,
+        )
+    
+
+
+        return True
+
+    except Exception as e:
+        print(e)
+        return False
+
+    finally:
+        os.remove(input_file)
+
+
 # -----------------------------------------------------------------------------

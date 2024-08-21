@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { CiAlarmOn } from "react-icons/ci";
 import styles from "./CsvGenerator.module.css";
-import { getInterfaceList, generateCsv } from "../../api/api";
+import { getInterfaceList, generateCsv, getTaskStatus } from "../../api/api";
+import { useDashboardContext } from "../../context/DashboardContext";
 
 const CsvGenerator: React.FC = () => {
   const [firstOption, setFirstOption] = useState<string | null>(null);
@@ -10,12 +11,15 @@ const CsvGenerator: React.FC = () => {
   const [showTimer, setShowTimer] = useState<boolean>(false);
   const [interfaceList, setInterfaceList] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [taskId, setTaskId] = useState<string | null>(null);
+  const [taskStatus, setTaskStatus] = useState<boolean | null>(null);
+  const [filePrefix, setFilePrefix] = useState<string>("default");
+  const { setFileList, fileList } = useDashboardContext();
 
   useEffect(() => {
     const fetchInterfaceList = async () => {
       try {
         const interfaces = await getInterfaceList();
-        console.log("Fetched interfaces:", interfaces);
         if (Array.isArray(interfaces)) {
           setInterfaceList(interfaces);
         } else {
@@ -31,25 +35,41 @@ const CsvGenerator: React.FC = () => {
   }, []);
 
   const handleFirstOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setTaskStatus(null);
     setFirstOption(e.target.value);
   };
 
-  const handleSecondOptionChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleSecondOptionChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     setSecondOption(parseInt(e.target.value, 10));
+    setTimer(parseInt(e.target.value, 10));
   };
 
-  const handleButtonClick = () => {
-    if (firstOption && secondOption) {
-      generateCsv(firstOption, secondOption);
+  const handleFilePrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilePrefix(e.target.value);
+  };
+
+  const handleButtonClick = async () => {
+    if (firstOption && secondOption && filePrefix) {
+      const generatedTaskId = await generateCsv(filePrefix ,firstOption, secondOption);
+      if (typeof generatedTaskId === "string") {
+        setTaskId(generatedTaskId);
+        setTimer(secondOption);
+        setShowTimer(true);
+      } else {
+        setError("Failed to generate CSV task ID");
+      }
       setTimer(secondOption);
-      setShowTimer(true); 
+      setShowTimer(true);
     }
   };
 
   const handleGoBackClick = () => {
     setFirstOption(null);
     setSecondOption(null);
-    setShowTimer(false); 
+    setFilePrefix("default");
+    setShowTimer(false);
   };
 
   useEffect(() => {
@@ -59,7 +79,23 @@ const CsvGenerator: React.FC = () => {
         setTimer((prevTimer) => (prevTimer ? prevTimer - 1 : null));
       }, 1000);
     } else if (timer === 0) {
-      clearInterval(interval);
+      const checkTaskStatus = async () => {
+        const restaskStatus = await getTaskStatus(taskId);
+        setTaskStatus(restaskStatus);
+        if (taskStatus === true) {
+          setFileList((prev) => ({
+            ...prev,
+            page: 1,
+            query: "",
+            total: fileList.total + 1,
+          }));
+          clearInterval(interval);
+          setTimer(null);
+        } else {
+          setTimer(1);
+        }
+      };
+      checkTaskStatus();
     }
 
     return () => clearInterval(interval);
@@ -69,22 +105,41 @@ const CsvGenerator: React.FC = () => {
     <div className={styles.csvGenerator}>
       {!showTimer ? (
         <>
+          <div className={`${styles.dropbox} ${styles.inputbox}`}>
+            <label htmlFor="prefix">File Prefix:</label>
+            <input
+              type="input"
+              id="prefix"
+              name="prefix"
+              value={filePrefix}
+              onChange={handleFilePrefixChange}
+              className={styles.prefixInput}
+            />
+          </div>
+
           <div className={styles.dropbox}>
-            <label htmlFor="firstOption">Select Interface:</label>
-            <select id="firstOption" onChange={handleFirstOptionChange} value={firstOption || ""}>
-              <option value="">Select an option</option>
-              {Array.isArray(interfaceList) && interfaceList.map((interfaceName) => (
-                <option key={interfaceName} value={interfaceName}>
-                  {interfaceName}
-                </option>
-              ))}
+            <select
+              id="firstOption"
+              onChange={handleFirstOptionChange}
+              value={firstOption || ""}
+            >
+              <option value="">Select Interface</option>
+              {Array.isArray(interfaceList) &&
+                interfaceList.map((interfaceName) => (
+                  <option key={interfaceName} value={interfaceName}>
+                    {interfaceName}
+                  </option>
+                ))}
             </select>
           </div>
 
           <div className={styles.dropbox}>
-            <label htmlFor="secondOption">Select Duration:</label>
-            <select id="secondOption" onChange={handleSecondOptionChange} value={secondOption || ""}>
-              <option value="">Select duration</option>
+            <select
+              id="secondOption"
+              onChange={handleSecondOptionChange}
+              value={secondOption || ""}
+            >
+              <option value="">Select Duration</option>
               <option value="10">10 seconds</option>
               <option value="20">20 seconds</option>
               <option value="30">30 seconds</option>
@@ -94,22 +149,32 @@ const CsvGenerator: React.FC = () => {
           <button
             className={styles.generateButton}
             onClick={handleButtonClick}
-            disabled={!firstOption || !secondOption}
+            disabled={!firstOption || !secondOption || !filePrefix}
           >
             Generate CSV
           </button>
         </>
       ) : (
         <>
-          {timer !== null && timer > 0 ? (
-            <div className={styles.timer}>
-                <CiAlarmOn className={styles.clock}/>
-              <p>Time remaining: {timer} seconds</p>
-            </div>
+          {timer !== null && timer >= 0 ? (
+            taskStatus === null ? (
+              <div className={styles.timer}>
+                <CiAlarmOn className={styles.clock} />
+                <p>Time remaining: {timer} seconds</p>
+              </div>
+            ) : (
+              <div className={styles.pending}>
+                <div className={styles.loader}></div>
+                <p className={styles.processing}>Processing...</p>
+              </div>
+            )
           ) : (
             <div className={styles.timerComplete}>
               <p>CSV Generation Complete!</p>
-              <button className={styles.goBackButton} onClick={handleGoBackClick}>
+              <button
+                className={styles.goBackButton}
+                onClick={handleGoBackClick}
+              >
                 Go Back
               </button>
             </div>
