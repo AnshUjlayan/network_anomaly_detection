@@ -13,6 +13,7 @@ const CsvGenerator: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [taskId, setTaskId] = useState<string | null>(null);
   const [taskStatus, setTaskStatus] = useState<boolean | null>(null);
+  const [filePrefix, setFilePrefix] = useState<string>("default");
   const { setFileList, fileList } = useDashboardContext();
 
   useEffect(() => {
@@ -45,9 +46,13 @@ const CsvGenerator: React.FC = () => {
     setTimer(parseInt(e.target.value, 10));
   };
 
+  const handleFilePrefixChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFilePrefix(e.target.value);
+  };
+
   const handleButtonClick = async () => {
-    if (firstOption && secondOption) {
-      const generatedTaskId = await generateCsv(firstOption, secondOption);
+    if (firstOption && secondOption && filePrefix) {
+      const generatedTaskId = await generateCsv(filePrefix ,firstOption, secondOption);
       if (typeof generatedTaskId === "string") {
         setTaskId(generatedTaskId);
         setTimer(secondOption);
@@ -63,6 +68,7 @@ const CsvGenerator: React.FC = () => {
   const handleGoBackClick = () => {
     setFirstOption(null);
     setSecondOption(null);
+    setFilePrefix("default");
     setShowTimer(false);
   };
 
@@ -99,14 +105,25 @@ const CsvGenerator: React.FC = () => {
     <div className={styles.csvGenerator}>
       {!showTimer ? (
         <>
+          <div className={`${styles.dropbox} ${styles.inputbox}`}>
+            <label htmlFor="prefix">File Prefix:</label>
+            <input
+              type="input"
+              id="prefix"
+              name="prefix"
+              value={filePrefix}
+              onChange={handleFilePrefixChange}
+              className={styles.prefixInput}
+            />
+          </div>
+
           <div className={styles.dropbox}>
-            <label htmlFor="firstOption">Select Interface:</label>
             <select
               id="firstOption"
               onChange={handleFirstOptionChange}
               value={firstOption || ""}
             >
-              <option value="">Select an option</option>
+              <option value="">Select Interface</option>
               {Array.isArray(interfaceList) &&
                 interfaceList.map((interfaceName) => (
                   <option key={interfaceName} value={interfaceName}>
@@ -117,13 +134,12 @@ const CsvGenerator: React.FC = () => {
           </div>
 
           <div className={styles.dropbox}>
-            <label htmlFor="secondOption">Select Duration:</label>
             <select
               id="secondOption"
               onChange={handleSecondOptionChange}
               value={secondOption || ""}
             >
-              <option value="">Select duration</option>
+              <option value="">Select Duration</option>
               <option value="10">10 seconds</option>
               <option value="20">20 seconds</option>
               <option value="30">30 seconds</option>
@@ -133,7 +149,7 @@ const CsvGenerator: React.FC = () => {
           <button
             className={styles.generateButton}
             onClick={handleButtonClick}
-            disabled={!firstOption || !secondOption}
+            disabled={!firstOption || !secondOption || !filePrefix}
           >
             Generate CSV
           </button>

@@ -78,18 +78,19 @@ export const uploadFile = async (file: File, rename : string , overwrite : boole
   }
 };
 
-export const generateCsv = async (device: string, duration: number) => {
+export const generateCsv = async (prefix: string ,device: string, duration: number) => {
   try {
+    const fileName = `${prefix}-${device}-${duration}`;
     const response = await api.post("/tcpdump", {
       device,
       duration,
-      output_file: `tcpdump_${Date.now()}`,
+      output_file: fileName,
       overwrite: false,
     });
 
     return response.data.task_id;
   } catch (error) {
-    console.error("Error generating CSV:", error);
+    console.error("Error generating CSV:", error.response?.data || error.message);
     throw error;
   }
 };

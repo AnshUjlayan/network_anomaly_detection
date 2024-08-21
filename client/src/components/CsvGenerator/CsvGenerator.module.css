@@ -19,14 +19,29 @@
     color: var(--text);
   }
   
-  .dropbox select {
-    padding: 10px;
+  .dropbox select{
+    padding: 5px 10px;
     border-radius: 5px;
     border: 1px solid var(--border);
     background-color: var(--background);
     color: var(--text);
   }
-  
+
+  .inputbox > label{
+    margin-left:5px;
+    font-size:0.8rem;
+    margin-bottom: 5px;
+    color: var(--text);
+  }
+
+  .prefixInput{
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--text);
+  }
+
   .generateButton , .goBackButton{
     padding: 10px 20px;
     background-color: var(--ifm-color-primary);

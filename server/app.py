@@ -197,6 +197,18 @@ def tcpdump():
     interface = request.json.get("interface", "en0")
     duration = request.json.get("duration", 10)
     output_file = request.json.get("output_file", "data")
+
+    if os.path.exists(os.path.join("dump", output_file + ".csv")):
+        i = 1
+        parts = output_file.split("-")
+        prefix = "-".join(parts[:-2])
+        suffix = "-".join(parts[-2:])
+        print(prefix)
+
+        while os.path.exists(os.path.join("dump",  f'{prefix}({i})-{suffix}.csv')):
+            i += 1
+        output_file = f'{prefix}({i})-{suffix}'
+
     overwrite = request.json.get("overwrite", False)
 
     output_file = os.path.join("dump", output_file + ".csv")

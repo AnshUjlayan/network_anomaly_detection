@@ -16,7 +16,7 @@
   text-align: center;
   color: var(--ifm-color-primary);
   border-radius: 5px;
-  height: 350px;
+  min-height: 350px;
   grid-column: span 7;
   text-align: left;
 }

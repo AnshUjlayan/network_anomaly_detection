@@ -1,13 +1,19 @@
+.uploaderContainer{
+  min-height: 200px;
+}
 .dropzone {
     border: 2px dashed var(--ifm-color-primary);
     border-radius: 5px;
     padding: 20px;
     text-align: center;
     background-color: var(--box);
+    min-height: 200px;
+    display: flex;
   }
   
   .instruction {
     color: var(--text);
     font-size: 16px;
+    margin: auto;
   }
   
