@@ -57,7 +57,13 @@ const FileList = () => {
 
   useEffect(() => {
     fetchFiles();
-  }, [fileList.page, fileList.sort, fileList.order, fileList.query]);
+  }, [
+    fileList.page,
+    fileList.sort,
+    fileList.order,
+    fileList.query,
+    fileList.total,
+  ]);
 
   const handleFileClick = async (fileName: string) => {
     try {

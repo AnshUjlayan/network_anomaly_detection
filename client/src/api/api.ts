@@ -94,3 +94,15 @@ export const generateCsv = async (device: string, duration: number) => {
   }
 };
 
+export const getTaskStatus = async (taskId: string) => {
+  try {
+    const response = await api.get(`/task/${taskId}`);
+    if(response.data.status === "SUCCESS"){ 
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error("Error fetching task status:", error);
+    throw error;
+  }
+}

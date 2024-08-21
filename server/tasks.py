@@ -62,8 +62,7 @@ def create_tcpdump(interface, duration, output_file):
         return False
 
     finally:
-        print("Removing temp file")
-        # os.remove(temp_file)
+        os.remove(temp_file)
 
 
 @celery.task
