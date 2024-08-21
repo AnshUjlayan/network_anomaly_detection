@@ -21,10 +21,10 @@ yarn-error.log*
 dump.rdb
 
 # Documentation
-docs/
 dataset/
 train/
 test/
+research/docs 
 
 # Python
 .DS_Store
