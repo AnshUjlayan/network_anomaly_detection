@@ -106,7 +106,6 @@ def convert_pcap_to_csv(input_file, output_file):
         return False
 
     finally:
-        print("Removing temp file")
         os.remove(input_file)
 
 
